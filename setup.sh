@@ -45,6 +45,15 @@ az databricks workspace create \
 
 echo "DONE!"
 
+echo -n "Obtaining storage key for use..."
+
+AZURE_STORAGE_KEY=$(az storage account keys list \
+                    --resource-group $GROUP_NAME \
+                    --account-name $STORAGE_ACCOUNT_NAME \
+                    --query "[0].value" -o tsv)
+
+echo "DONE!"
+
 echo -n "Creating access connector $CONNECTOR_NAME..."
 
 #create an access connector with managed identity
@@ -71,15 +80,16 @@ echo -n "Assigning 'Storage Blob Data Contributor' to Object ID: $CONNECTOR_ID..
 #get the subscription id
 SUBSCRIPTION_ID=$(az account show --query "id" --output tsv)
 
-#define storage scope
-SCOPE="/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$GROUP_NAME/providers/Microsoft.Storage/storageAccounts/$STORAGE_ACCOUNT_NAME/blobServices/default/containers/$CONTAINER_NAME"
+#define storage scope - the commented out line assigns this to a specific container, but we want to do the whole storage account
+# SCOPE="/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$GROUP_NAME/providers/Microsoft.Storage/storageAccounts/$STORAGE_ACCOUNT_NAME/blobServices/default/containers/$CONTAINER_NAME"
+SCOPE="/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$GROUP_NAME/providers/Microsoft.Storage/storageAccounts/$STORAGE_ACCOUNT_NAME"
 
 echo "Granting storage blob data contributor role to access connector $CONNECTOR_ID"
 echo -n "With scope $SCOPE..."
 
 #grant storage blob data contributor role to access connector
 MSYS_NO_PATHCONV=1 az role assignment create \
-  --assignee $CONNECTOR_ID \
+  --assignee-object-id $CONNECTOR_ID \
   --role "Storage Blob Data Contributor" \
   --scope $SCOPE
 
@@ -89,56 +99,70 @@ echo -n "Creating bronze directory..."
 
 #create medallion architecture directories
 az storage fs directory create --file-system $CONTAINER_NAME \
-                               --name $DIRECTORY
+                               --name $DIRECTORY \
+                               --account-name $STORAGE_ACCOUNT_NAME
+                               #--auth-mode "login"
 
 echo "DONE!"
 
 echo -n "Creating silver directory..."
 
 az storage fs directory create --file-system $CONTAINER_NAME \
-                               --name "silver"
+                               --name "silver" \
+                               --account-name $STORAGE_ACCOUNT_NAME
+                               #--auth-mode "login"
 
 echo "DONE!"
 echo -n "Creating gold directory..."
 
 az storage fs directory create --file-system $CONTAINER_NAME \
-                               --name "gold"                            
-
-echo "DONE!"
-
-#upload files to container
-
-echo -n "Uploading file 1/4 to $CONTAINER_NAME/$DIRECTORY..."
-
-az storage fs file upload --file-system $CONTAINER_NAME \
-    --source "extended_steam_games.csv" \
-    --path "$DIRECTORY/games_muhammadaqeelkabir.csv"
-
-echo "DONE!"
-echo -n "Uploading file 2/4 to $CONTAINER_NAME/$DIRECTORY..."
-
-az storage fs file upload --file-system $CONTAINER_NAME \
-    --source "games.csv" \
-    --path "$DIRECTORY/games_fronkongames.csv"
-
-echo "DONE!"
-echo -n "Uploading file 3/4 to $CONTAINER_NAME/$DIRECTORY..."
-
-az storage fs file upload --file-system $CONTAINER_NAME \
-    --source "games.json" \
-    --path "$DIRECTORY/games_fronkongames.json"
-
-echo "DONE!"
-echo -n "Uploading file 4/4 to $CONTAINER_NAME/$DIRECTORY..."
-
-az storage fs file upload --file-system $CONTAINER_NAME \
-    --source "weighted_score_above_08.csv" \
-    --path "$DIRECTORY/reviews.json"
+                               --name "gold" \
+                               --account-name $STORAGE_ACCOUNT_NAME
+                               #--auth-mode "login"                            
 
 echo "DONE!"
 
 # ATTENTION - below this line is things I wanted to add but could not
 # These things are outside of Azure so it is more difficult
+
+#upload files to container
+
+#echo -n "Uploading file 1/4 to $CONTAINER_NAME/$DIRECTORY..."
+
+#az storage fs file upload --file-system $CONTAINER_NAME \
+#    --source "extended_steam_games.csv" \
+#    --path "$DIRECTORY/games_muhammadaqeelkabir.csv" \
+#    --account-name $STORAGE_ACCOUNT_NAME
+    #--auth-mode "key"
+
+#echo "DONE!"
+#echo -n "Uploading file 2/4 to $CONTAINER_NAME/$DIRECTORY..."
+
+#az storage fs file upload --file-system $CONTAINER_NAME \
+#    --source "games.csv" \
+#    --path "$DIRECTORY/games_fronkongames.csv" \
+#    --account-name $STORAGE_ACCOUNT_NAME
+#    #--auth-mode "key"
+
+#echo "DONE!"
+#echo -n "Uploading file 3/4 to $CONTAINER_NAME/$DIRECTORY..."
+
+#az storage fs file upload --file-system $CONTAINER_NAME \
+#    --source "games.json" \
+#    --path "$DIRECTORY/games_fronkongames.json" \
+#    --account-name $STORAGE_ACCOUNT_NAME
+    #--auth-mode "key"
+
+#echo "DONE!"
+#echo -n "Uploading file 4/4 to $CONTAINER_NAME/$DIRECTORY..."
+
+#az storage fs file upload --file-system $CONTAINER_NAME \
+#    --source "weighted_score_above_08.csv" \
+#    --path "$DIRECTORY/reviews.json" \
+#    --account-name $STORAGE_ACCOUNT_NAME
+    #--auth-mode "key"
+
+#echo "DONE!"
 
 #create storage credential
 
