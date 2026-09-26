@@ -6,6 +6,11 @@
 1. Login to account using "az login" in the CLI
 1. Add the databricks extension using "az extension add --name databricks"
 1. Add execute permission to setup.sh and run
+1. Upload files to steamcontainer
+1. Find steamconnector resource id
+1. Open databricks workspace
+1. Establish a storage credential using the steamconnector resource id
+1. Establish an external location using this storage credential and fill in the url
 
 ## Issues I ran into (to talk about in interviews)
 

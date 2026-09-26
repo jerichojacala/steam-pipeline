@@ -83,6 +83,7 @@ SUBSCRIPTION_ID=$(az account show --query "id" --output tsv)
 #define storage scope - the commented out line assigns this to a specific container, but we want to do the whole storage account
 # SCOPE="/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$GROUP_NAME/providers/Microsoft.Storage/storageAccounts/$STORAGE_ACCOUNT_NAME/blobServices/default/containers/$CONTAINER_NAME"
 SCOPE="/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$GROUP_NAME/providers/Microsoft.Storage/storageAccounts/$STORAGE_ACCOUNT_NAME"
+SUBSCRIPTION_SCOPE="/subscriptions/$SUBSCRIPTION_ID"
 
 echo "Granting storage blob data contributor role to access connector $CONNECTOR_ID"
 echo -n "With scope $SCOPE..."
@@ -92,6 +93,21 @@ MSYS_NO_PATHCONV=1 az role assignment create \
   --assignee-object-id $CONNECTOR_ID \
   --role "Storage Blob Data Contributor" \
   --scope $SCOPE
+
+MSYS_NO_PATHCONV=1 az role assignment create \
+  --assignee-object-id $CONNECTOR_ID \
+  --role "Storage Account Contributor" \
+  --scope $SCOPE
+
+MSYS_NO_PATHCONV=1 az role assignment create \
+  --assignee-object-id $CONNECTOR_ID \
+  --role "Storage Queue Data Contributor" \
+  --scope $SCOPE
+
+MSYS_NO_PATHCONV=1 az role assignment create \
+  --assignee-object-id $CONNECTOR_ID \
+  --role "EventGrid EventSubscription Contributor" \
+  --scope $SUBSCRIPTION_SCOPE
 
 echo "DONE!"
 
@@ -121,6 +137,9 @@ az storage fs directory create --file-system $CONTAINER_NAME \
                                #--auth-mode "login"                            
 
 echo "DONE!"
+echo -n "Registering EventGrid with subscription..."
+
+az provider register --namespace Microsoft.EventGrid --subscription $SUBSCRIPTION_ID
 
 # ATTENTION - below this line is things I wanted to add but could not
 # These things are outside of Azure so it is more difficult
