@@ -23,3 +23,10 @@ It's hard to say where this cost comes from- while visualizations show accumulat
 Bash scripts often take a long time to deploy, and if something goes wrong, Bash is often not expressive enough to stop a deployment prematurely and safely. Dependencies can become complex, and echoing in Bash can get drowned out by text from the cloud CLI. Terraform manages all of these problems. A goal of this project is to replicate deployment in Terraform.
 
 I kept running into an error when granting the storage blob data contributor role to the data connector. The Azure generated error message explained it could not find the scope that I was providing. Initially after running it through an LLM, consulting documentation, 
+
+
+## Excessive stop words - BERTopic
+
+https://maartengr.github.io/BERTopic/faq.html#how-do-i-reduce-topic-outliers
+
+Upon running the BERTopic model upon raw documents from project zomboid reviews, one thing I noticed was that there were a lot of stop words in the themes. In fact, there was little in the themes that seemed to actually related to the game.

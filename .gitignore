@@ -1,7 +1,10 @@
 # Data
 *.csv
 *.json
-
+bronze/
+silver/
+main_bert.ipynb
+models/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

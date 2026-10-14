@@ -41,7 +41,9 @@ az databricks workspace create \
     --resource-group $GROUP_NAME \
     --name $WORKSPACE_NAME \
     --location $REGION \
-    --sku "premium"
+    --sku "premium" \
+    --enable-no-public-ip "no" \
+    
 
 echo "DONE!"
 
@@ -140,6 +142,8 @@ echo "DONE!"
 echo -n "Registering EventGrid with subscription..."
 
 az provider register --namespace Microsoft.EventGrid --subscription $SUBSCRIPTION_ID
+
+echo -n "SETUP FINISHED!"
 
 # ATTENTION - below this line is things I wanted to add but could not
 # These things are outside of Azure so it is more difficult
